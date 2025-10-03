@@ -9,3 +9,9 @@ A guide on how to make NVIDIA vGPU [v15.4](https://docs.nvidia.com/vgpu/15.0/) w
 Before even getting started, figure out what version of NVIDIA vGPU do you need. There is a [Support Matrix](https://docs.nvidia.com/vgpu/15.0/product-support-matrix/index.html#abstract__ubuntu) page detailing what your Host OS needs to be, and which VM OS(s) are supported. This will be important later
 
 ## Setup Enterprise account (**Free** 90-day eval license)
+- If you're a new user, go here to start your 90 day eval license to test out the vGPU functionality: https://www.nvidia.com/en-us/data-center/resources/vgpu-evaluation/
+
+- Once that is done, go here: https://ui.licensing.nvidia.com/software
+
+- If you've checked the Support Matrix [above](#first-things-first!!)
+
