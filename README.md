@@ -22,7 +22,11 @@ Before even getting started, figure out what version of NVIDIA vGPU do you need.
         
     - Check current mode: `sudo ./displaymodeselector —listgpumodes` shows the current mode (graphics or compute)
     - Change to compute for display-less mode: `sudo ./displaymodeselector --gpumode compute` (only needed for A6000, not for server-grade GPUs)
-    - Now `sudo ./displaymodeselector —listgpumodes` shows “compute”
+    - Now 
+    ```
+    sudo ./displaymodeselector —listgpumodes
+    ```
+     shows “compute”
     - Enable SRIOV - `sudo /usr/lib/nvidia/sriov-manage -e ALL`
 
 
