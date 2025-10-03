@@ -18,16 +18,42 @@ Before even getting started, figure out what version of NVIDIA vGPU do you need.
 - Download the zip and extract it. You'll see `Host Drivers` and `Guest Drivers`.
   - On your baremetal server/machine, install the driver that is in the `Host Drivers` folder. The `*.run` file runs better in my experience
   
-  - Download the `displaymodeselector` tool & change the display mode to "compute"
+  - Download the [`displaymodeselector`](https://developer.nvidia.com/displaymodeselector) tool & change the display mode to "compute"
         
-    - Check current mode: `sudo ./displaymodeselector —listgpumodes` shows the current mode (graphics or compute)
+    - Check current mode: 
+    ```
+    sudo ./displaymodeselector —listgpumodes
+    ``` 
+    this shows the current mode (graphics or compute)
     - Change to compute for display-less mode: `sudo ./displaymodeselector --gpumode compute` (only needed for A6000, not for server-grade GPUs)
     - Now 
     ```
     sudo ./displaymodeselector —listgpumodes
     ```
      shows “compute”
-    - Enable SRIOV - `sudo /usr/lib/nvidia/sriov-manage -e ALL`
+    - Enable SRIOV (I did `ALL` since I only have one GPU) 
+    ```
+    sudo /usr/lib/nvidia/sriov-manage -e ALL
+    ```
+- Obtain the PCI device bus/device/function (BDF) of the physical GPU
+```
+$ lspci | grep NVIDIA
 
+51:00.0 VGA compatible controller: NVIDIA Corporation GA102GL [RTX A6000] (rev a1)
+``` 
+So if we check the following, we will see that Virtual Functions should have been created from the `sriov-manage` step above.
 
-Now,`ls -l /sys/bus/pci/devices/0000:51:00.0` shows all the virtual functions:
+```
+$ ls -l /sys/bus/pci/devices/0000:51:00.0 | grep virtfn
+
+lrwxrwxrwx 1 root root           0 Oct  3 14:23 virtfn0 -> ../0000:51:00.4
+lrwxrwxrwx 1 root root           0 Oct  3 14:23 virtfn1 -> ../0000:51:00.5
+lrwxrwxrwx 1 root root           0 Oct  3 14:23 virtfn10 -> ../0000:51:01.6
+.
+.
+.
+```
+
+- If you've got this far and everything has worked, then so far so good.
+- Next step is to create the VM. I used `libvirt` with `virt-install` , you can use `qemu` or `virt-manager` , however this guide will only go over `libvirt`
+- 
