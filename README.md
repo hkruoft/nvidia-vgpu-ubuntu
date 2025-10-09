@@ -233,7 +233,7 @@ $ wget https://mirror.csclub.uwaterloo.ca/ubuntu-releases/22.04/ubuntu-22.04.5-l
 Here is what I ran to create the VM, your mileage may vary:
 
 ```
-virt-install   --name ubuntu2204   --memory 8096   --vcpus 2   --disk size=30   --cdrom /mnt/ubuntu-iso/ubuntu-22.04.5-live-server-amd64.iso   --os-variant ubuntu22.04   --network network=default --graphics vnc
+virt-install   --name ubuntu2204   --memory 8096   --vcpus 2   --disk size=80   --cdrom /mnt/ubuntu-iso/ubuntu-22.04.5-live-server-amd64.iso   --os-variant ubuntu22.04   --network network=default --graphics vnc
 ```
 
 - Setup your VM over the VNC connection. You can also attach to it with `virt-viewer` like this 
@@ -256,9 +256,12 @@ Edit the VM's XML config:
 ```
 virsh edit ubuntu2204
 ```
-From the step where we figured out what the PCIe BDF was, add the following lines in the VM's XML config:
-```
+For a hypervisor that uses the mdev VFIO framework, add a device entry that identifies the vGPU through its UUID as follows:
 
+From the step where we figured out what the PCIe BDF was, add the following lines in the VM's XML config:
+
+
+```
 <devices>
 .
 .
@@ -270,4 +273,68 @@ From the step where we figured out what the PCIe BDF was, add the following line
   </hostdev>
 </devices>
 ```
+
+**uuid**: 
+The UUID that was assigned to the vGPU when the vGPU was created.
+This example adds a device entry for the vGPU with the UUID `6240e2b9-61fe-4fca-809c-9a8000c3fa33`.
+
+
+### Restart the VM and install Guest Drivers
+
+```
+# virsh shutdown ubuntu2204
+# virsh start ubuntu2204
+```
+
+Connect to the VM and copy the "Guest Drivers" from this [step](#setup-the-drivers) onto somewhere in the VM.
+
+Then, install the Guest drivers (file name should be `NVIDIA-Linux-*-grid.run`)
+
+### Create the gridd.conf file
+
+Inside the VM, copy the `gridd.conf.template` file and create a `gridd.conf` file
+
+```
+GuestVM#  cp /etc/nvidia/gridd.conf.template /etc/nvidia/gridd.conf
+```
+
+And then add the `FeatureType` configuration parameter to the file `/etc/nvidia/gridd.conf` on a new line as `FeatureType="value"`.
+value depends on the type of the GPU assigned to the licensed client that you are configuring.
+
+```
+# /etc/nvidia/gridd.conf.template - Configuration file for NVIDIA Grid Daemon
+…
+# Description: Set Feature to be enabled
+# Data type: integer
+# Possible values:
+# 0 => for unlicensed state
+# 1 => for NVIDIA vGPU
+# 2 => for NVIDIA RTX Virtual Workstation
+# 4 => for NVIDIA Virtual Compute Server
+FeatureType=1
+...
+```
+
+### Add the .tok token 
+Inside your VM still, copy the client configuration token from this earlier [step](#4-generating-a-client-configuration-token-for-a-cls-instance) to the `/etc/nvidia/ClientConfigToken` directory.
+
+Ensure that the file access modes of the client configuration token allow the owner to read, write, and execute the token, and the group and others only to read the token.
+
+### Restart the GRIDD service
+
+```
+GuestVM# systemctl restart nvidia-gridd.service
+```
+
+### Check license
+
+If all goes well (hopefully), you should see the license applied succesfully:
+
+```
+# nvidia-smi -q | grep Lic
+    vGPU Software Licensed Product
+        License Status                    : Licensed (Expiry: 2025-10-5 1:57:32 GMT)
+
+```
+
 
