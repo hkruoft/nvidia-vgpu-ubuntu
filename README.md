@@ -5,6 +5,7 @@ A guide on how to make NVIDIA vGPU [v17.6](https://docs.nvidia.com/vgpu/17.0/) w
 ## Summary
 1) Check the support matrix and see what works best for you. For me it was this version: [v17.6](https://docs.nvidia.com/vgpu/17.0/product-support-matrix/index.html#abstract__ubuntu)
 2) If you are still testing or trying things out, you can setup an Enterprise Account that will give you a [FREE 90-day evaluation license](https://www.nvidia.com/en-us/data-center/resources/vgpu-evaluation/)
+
 ## First things first!!
 Before even getting started, figure out what version of NVIDIA vGPU do you need. There is a [Support Matrix](https://docs.nvidia.com/vgpu/15.0/product-support-matrix/index.html#abstract__ubuntu) page detailing what your Host OS needs to be, and which VM OS(s) are supported. This will be important later when you are setting up your VM OS.
 
@@ -24,7 +25,12 @@ Before even getting started, figure out what version of NVIDIA vGPU do you need.
 
 - On the Create License Server page of the wizard, step through the configuration requirements to provide the details of your license server.
   - **Step 1 – Identification**: In the **Name** field, enter your choice of name for the license server and in the **Description** field, enter a text description of the license server. The description is required and will be displayed on the details page for the license server that you are creating.
-  - **Step 2 – Features**: Select one or more available features from your entitlements to allot to this license server.
+  - **Step 2 – Features**: Select one or more available features from your entitlements to allot to this license server. Can select all, I had the following show up: 
+      - **NVIDIA RTX Virtual Workstation-5.0** 
+      - **NVIDIA Virtual Applications-3.0**
+  
+  - **Step 2 (Cont'd)**: It will also ask you to pick the the number of "Concurrent Users". Each of the one above has 128 CCUs with the 90-day license. We did 2 each, since we only needed two VMs for the research
+
   - **Step 3 - Environment**: Select **Cloud (CLS)** to install this license server. To make the selection after the license server has been created, select the **Deferred** option.
   - **Step 4 – Configuration**: From the **Leasing mode** drop-down list, select the following leasing mode (this is what worked for me):
     - **Standard Networked Licensing**
@@ -36,22 +42,43 @@ Before even getting started, figure out what version of NVIDIA vGPU do you need.
 
 ### 3) Creating a CLS *Instance* on the NVIDIA Licensing Portal
 - In the left navigation pane of the NVIDIA Licensing Portal dashboard, click **SERVICE INSTANCES**.
-- You should already see a Service Instance that has been auto-created 
 
 ![alt text](https://i.imgur.com/iIcfMoU.png)
 
+- You should already see a Service Instance that has been auto-created 
 
+- For me it was named something like: `00q8z00001wfh8ouaw-2025-10-03_20-22`
 
-## Download the drivers zip file
-- Once that is done, go here: https://ui.licensing.nvidia.com/software
+> **But it didn't autocreate for me!!**
 
-- If you've checked the Support Matrix [above](#first-things-first) you should know what version works best for your GPU and Ubuntu OS version
+If it did **NOT** autocreate, then you can follow the steps here:
+ - [Creating a CLS Instance on the NVIDIA Licensing Portal](https://docs.nvidia.com/vgpu/17.0/grid-software-quick-start-guide/index.html#creating-cls-instance-on-portal)
+ - [Binding a License Server to a Service Instance](https://docs.nvidia.com/vgpu/17.0/grid-software-quick-start-guide/index.html#binding-license-server-on-portal-to-cls-instance)
+- [Installing a License Server on a CLS Instance](https://docs.nvidia.com/vgpu/17.0/grid-software-quick-start-guide/index.html#installing-license-server-on-cls-instance)
 
-## Setup the drivers
-- Download the zip and extract it. You'll see `Host Drivers` and `Guest Drivers`.
-  - On your baremetal server/machine, install the driver that is in the `Host Drivers` folder. The `*.run` file runs better in my experience
-  
-  ## [!!] Change `displaymode` of GPU
+### 4) Generating a Client Configuration Token for a CLS Instance
+
+- In the left navigation pane, click **SERVICE INSTANCES**
+
+![alt text](https://i.imgur.com/iIcfMoU.png)
+
+- On the Service Instances page that opens, from the **Actions** menu for the CLS instance for which you want to generate a client configuration token, choose **Generate client configuration token**.
+- In the **Generate Client Configuration Token** pop-up window that opens, select the references that you want to include in the client configuration token.
+  - From the list of scope references, select the scope references that you want to include
+
+  ![alt text](https://i.imgur.com/f6M3aVS.png)
+
+  - In the Expiration section, select an expiration date for the client configuration token. If you do not select a date, the default token expiration time is 12 years if you select "**Token never expires**"
+
+  - Click **DOWNLOAD CLIENT CONFIGURATION TOKEN**.
+A file named `client_configuration_token_mm-dd-yyyy-hh-mm-ss.tok` is saved to your default downloads folder.
+
+- Copy this token on your main Host where you will be doing the vGPU setup. This will be used later when we create the VMs
+
+## Installing and configuring vGPU manager and drivers
+
+### Prerequisite:
+#### [!!!] Change `displaymode` of GPU on main Host
   (This step is <ins>**important</ins> !!** )
 - Download the [`displaymodeselector`](https://developer.nvidia.com/displaymodeselector) tool & change the display mode to "compute"
         
@@ -65,16 +92,24 @@ Before even getting started, figure out what version of NVIDIA vGPU do you need.
     ```
     sudo ./displaymodeselector —listgpumodes
     ```
-     shows “compute”
+     shows `compute`
 
-## Enable SR-IOV
-[Use only the custom script `sriov-manage` provided by NVIDIA vGPU software for this purpose. **Do NOT** try to enable the virtual function for the GPU by any other means]
-- Enable SRIOV (I did `ALL` since I only have one GPU) 
+### Setup the drivers
+- In the left navigation pane, click **SOFTWARE DOWNLOADS**
+- If you've checked the Support Matrix [above](#first-things-first) you should know what version works best for your GPU and Ubuntu OS version
+- Find your download package and click Download. (Mine was `Complete vGPU 17.6 package for Linux KVM including support driver`. [[ *Why Linux and not Ubuntu?* The `Linux` one comes with `*.run` files which I found better for 22.04 Host Driver installation) ]] 
+- Download the zip and extract it on your main Host. You'll see `Host Drivers` and `Guest Drivers`.
+  - On your baremetal server/machine, install the driver that is in the `Host Drivers` folder. The `*.run` file works better in my experience.
+
+### Enable SR-IOV
+[ **IMPORTANT:** Use only the custom script `sriov-manage` provided by NVIDIA vGPU software for this purpose. **Do NOT** try to enable the virtual function for the GPU by any other means]
+
+- Enable SRIOV (I did `ALL` since I only have one GPU on the server) 
     ```
     sudo /usr/lib/nvidia/sriov-manage -e ALL
     ```
 
-## Check if your Virtual Functions are enabled
+### Check if your Virtual Functions are enabled
 - Obtain the PCI device bus/device/function (BDF) of the physical GPU
 ```
 $ lspci | grep NVIDIA
@@ -103,7 +138,7 @@ Next step is to create the VM. I used `libvirt` with `virt-install` , you can us
 - Download your desired Ubuntu ISO that will be used for the VM somewhere on your baremetal machine (mine was in `/mnt/ubuntu-iso` so that's what you will see below)
 ```
 $ cd /mnt/ubuntu-iso/
-$ wget https://mirror.csclub.uwaterloo.ca/ubuntu-releases/20.04/ubuntu-20.04.6-live-server-amd64.iso
+$ wget https://mirror.csclub.uwaterloo.ca/ubuntu-releases/22.04/ubuntu-22.04.6-live-server-amd64.iso
 ```
 Here is what I ran to create the VM, your mileage may vary (I am using `ubuntu 20.04` because vGPU v15.4 doesn't seem to work with `ubuntu 22.04`, gives the known [GPL error](https://www.cs.toronto.edu/~jhancock/wlog/?p=328) ):
 
