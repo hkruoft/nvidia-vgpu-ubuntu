@@ -18,6 +18,9 @@ A guide on how to make NVIDIA vGPU [v17.6](https://docs.nvidia.com/vgpu/17.0/) w
 Before even getting started, figure out what version of NVIDIA vGPU do you need. There is a [Support Matrix](https://docs.nvidia.com/vgpu/15.0/product-support-matrix/index.html#abstract__ubuntu) page detailing what your Host OS needs to be, and which VM OS(s) are supported. This will be important later when you are setting up your VM OS.
 
 ## License Server (needed for vGPU driver to work on VM)
+
+Why do I need this? Well, without this the vGPU driver on the VM does not work. The moment you run `nvidia-smi` , syslog on the VM starts spamming errors since NVIDIA blocks the driver from running. So you need the license token to make the VM work.
+
 ### 1) Setup Enterprise account (**Free** 90-day eval license)
 - If you're a new user, go to the following link to start your 90 day eval license to test out the vGPU functionality: https://www.nvidia.com/en-us/data-center/resources/vgpu-evaluation/
 
