@@ -2,6 +2,13 @@
 
 A guide on how to make NVIDIA vGPU [v17.6](https://docs.nvidia.com/vgpu/17.0/) work on Ubuntu 22.04
 
+Working config | .
+ --- | ---
+ Software | NVIDIA vGPU version 17.6
+ Host OS      | Ubuntu 22.04 Server
+ GPU      | 1x NVIDIA RTX A6000
+ Guest (VM) OS | Ubuntu 22.04 Server
+
 ## Summary
 1) Check the support matrix and see what works best for you. For me it was this version: [v17.6](https://docs.nvidia.com/vgpu/17.0/product-support-matrix/index.html#abstract__ubuntu)
 2) If you are still testing or trying things out, you can setup an Enterprise Account that will give you a [FREE 90-day evaluation license](https://www.nvidia.com/en-us/data-center/resources/vgpu-evaluation/)
