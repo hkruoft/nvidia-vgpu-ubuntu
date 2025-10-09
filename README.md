@@ -5,6 +5,14 @@ A guide on how to make NVIDIA vGPU [v17.6](https://docs.nvidia.com/vgpu/17.0/) w
 ## Summary
 1) Check the support matrix and see what works best for you. For me it was this version: [v17.6](https://docs.nvidia.com/vgpu/17.0/product-support-matrix/index.html#abstract__ubuntu)
 2) If you are still testing or trying things out, you can setup an Enterprise Account that will give you a [FREE 90-day evaluation license](https://www.nvidia.com/en-us/data-center/resources/vgpu-evaluation/)
+3) Setup License server & generate token
+4) Install vGPU manager and Host drivers on your main Host (baremetal)
+5) Enable SRIOV and enable virtual functions on Host GPU
+6) Create your vGPU
+7) Create your VM & link your vGPU to the VM
+8) Install GRIDD drivers (Guest Drivers)
+9) Add license token 
+10) Cross your fingers and hope everything works ¯\\\_(ツ)_/¯ 
 
 ## First things first!!
 Before even getting started, figure out what version of NVIDIA vGPU do you need. There is a [Support Matrix](https://docs.nvidia.com/vgpu/15.0/product-support-matrix/index.html#abstract__ubuntu) page detailing what your Host OS needs to be, and which VM OS(s) are supported. This will be important later when you are setting up your VM OS.
