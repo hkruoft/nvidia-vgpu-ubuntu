@@ -131,6 +131,93 @@ lrwxrwxrwx 1 root root           0 Oct  3 14:23 virtfn10 -> ../0000:51:01.6
 
 - If you've got this far and everything has worked, then so far so good.
 
+### Creating an NVIDIA vGPU that Supports SR-IOV on a Linux with KVM Hypervisor
+
+An NVIDIA vGPU that supports SR-IOV resides on a physical GPU that supports SR-IOV, such as a GPU based on the **NVIDIA Ampere architecture**. If your GPU does not support this, then follow the [LEGACY vGPU setup steps](https://docs.nvidia.com/vgpu/17.0/grid-vgpu-user-guide/index.html#creating-legacy-vgpu-device-red-hat-el-kvm)
+
+- Change to the `mdev_supported_types` directory for the virtual function on which you want to create the vGPU.
+
+`# cd /sys/class/mdev_bus/domain\:bus\:vf-slot.v-function/mdev_supported_types/`
+
+For example: 
+`cd /sys/class/mdev_bus/0000\:51\:00.4/mdev_supported_types`
+
+- Find out which subdirectory of `mdev_supported_types` contains registration information for the vGPU type that you want to create.
+
+<pre> # grep -l "<i>vgpu-type</i>" nvidia-*/name` </pre>
+
+**vgpu-type**:
+The vGPU type, for example, `A6000-24Q`.
+
+This example shows that the registration information for the `A6000-24Q` vGPU type is contained in the nvidia-532 subdirectory of `mdev_supported_types`.
+
+``` 
+# grep -l "A6000-24Q" nvidia-*/name
+nvidia-532/name 
+```
+
+- Confirm that you can create an instance of the vGPU type on the virtual function.
+<pre>
+# cat <i>subdirectory</i>/available_instances
+</pre>
+
+**subdirectory**:
+The subdirectory that you found in the previous step, for example, `nvidia-532`.
+The number of available instances must be 1. If the number is 0, a vGPU has already been created on the virtual function. Only one instance of any vGPU type can be created on a virtual function.
+
+This example shows that an instance of the A40-2Q vGPU type can be created on the virtual function.
+
+```
+# cat nvidia-532/available_instances
+1
+```
+
+- Generate a correctly formatted universally unique identifier (UUID) for the vGPU.
+```
+# uuidgen
+6240e2b9-61fe-4fca-809c-9a8000c3fa33
+```
+- Write the UUID that you obtained in the previous step to the create file in the registration information directory for the vGPU type that you want to create.
+
+<pre>
+# echo "<i>uuid</i>"> <i>subdirectory</i>/create
+</pre>
+**uuid**:
+The UUID that you generated in the previous step, which will become the UUID of the vGPU that you want to create.
+
+**subdirectory**:
+The registration information directory for the vGPU type that you want to create, for example, `nvidia-532`.
+This example creates an instance of the `A6000-24Q` vGPU type with the UUID `6240e2b9-61fe-4fca-809c-9a8000c3fa33`.
+
+```
+# echo "6240e2b9-61fe-4fca-809c-9a8000c3fa33" > nvidia-532/create
+```
+An mdev device file for the vGPU is added to the parent virtual function directory of the vGPU. The vGPU is identified by its UUID.
+
+- **Time-sliced vGPUs only**: Make the mdev device file that you created to represent the vGPU persistent.
+
+<pre>
+# mdevctl define --auto --uuid <i>uuid</i>
+</pre>
+
+**uuid**: 
+The UUID that you specified in the previous step for the vGPU that you are creating.
+
+- Confirm that the vGPU was created.
+Confirm that the /sys/bus/mdev/devices/ directory contains a symbolic link to the `mdev` device file.
+
+<pre>
+# mdevctl list
+6240e2b9-61fe-4fca-809c-9a8000c3fa33 0000:51:00.4 nvidia-532 (defined)
+</pre>
+
+<pre>
+# ls -l /sys/bus/mdev/devices/
+total 0
+lrwxrwxrwx 1 root root 0 Oct  2 12:26 6240e2b9-61fe-4fca-809c-9a8000c3fa33 -> ../../../devices/pci0000:50/0000:50:03.1/0000:51:00.4/6240e2b9-61fe-4fca-809c-9a8000c3fa33
+
+</pre>
+
 ## Virtual Machines
 ### Initial VM setup
 Next step is to create the VM. I used `libvirt` with `virt-install` , you can use `qemu` or `virt-manager` , however this guide will only go over `libvirt`
@@ -138,20 +225,24 @@ Next step is to create the VM. I used `libvirt` with `virt-install` , you can us
 - Download your desired Ubuntu ISO that will be used for the VM somewhere on your baremetal machine (mine was in `/mnt/ubuntu-iso` so that's what you will see below)
 ```
 $ cd /mnt/ubuntu-iso/
-$ wget https://mirror.csclub.uwaterloo.ca/ubuntu-releases/22.04/ubuntu-22.04.6-live-server-amd64.iso
+$ wget https://mirror.csclub.uwaterloo.ca/ubuntu-releases/22.04/ubuntu-22.04.5-live-server-amd64.iso
 ```
-Here is what I ran to create the VM, your mileage may vary (I am using `ubuntu 20.04` because vGPU v15.4 doesn't seem to work with `ubuntu 22.04`, gives the known [GPL error](https://www.cs.toronto.edu/~jhancock/wlog/?p=328) ):
+
+(Before the next step, make you SSH with X window [`ssh -X hostname`] or use a VNC client)
+
+Here is what I ran to create the VM, your mileage may vary:
 
 ```
-virt-install   --name ubuntu2004   --memory 8192   --vcpus 4   --disk path=/var/lib/libvirt/images/ubuntu2004_vgpu.qcow2,size=40,bus=virtio   --cdrom /mnt/ubuntu-iso/ubuntu-20.04.6-live-server-amd64.iso   --os-variant ubuntu20.04   --network bridge=virbr0,model=virtio,driver.name=vhost,driver.queues=4   --graphics vnc
+virt-install   --name ubuntu2204   --memory 8096   --vcpus 2   --disk size=30   --cdrom /mnt/ubuntu-iso/ubuntu-22.04.5-live-server-amd64.iso   --os-variant ubuntu22.04   --network network=default --graphics vnc
 ```
 
 - Setup your VM over the VNC connection. You can also attach to it with `virt-viewer` like this 
 ```
-virt-viewer --connect qemu:///system --wait ubuntu2004
+virt-viewer --connect qemu:///system --wait ubuntu2204
 ```
 
 - After your VM OS installation is done, make sure to "eject" the iso. From your Host (make sure you select the correct type `sda`/`hda`/`cdrom`):
+
 ```
 virsh change-media ubuntu2004 sda --eject
 ```
@@ -163,10 +254,20 @@ virsh shutdown ubuntu2004
 ### Link the vGPU to the VM
 Edit the VM's XML config:
 ```
-virsh edit ubuntu2004
+virsh edit ubuntu2204
 ```
 From the step where we figured out what the PCIe BDF was, add the following lines in the VM's XML config:
 ```
 
+<devices>
+.
+.
+.
+  <hostdev mode='subsystem' type='mdev' model='vfio-pci'>
+    <source>
+      <address uuid='uuid'/>
+    </source>
+  </hostdev>
+</devices>
 ```
 
