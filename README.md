@@ -17,7 +17,7 @@ Before even getting started, figure out what version of NVIDIA vGPU do you need.
 - Log in to the [NVIDIA Application Hub](http://nvid.nvidia.com/dashboard/) and click **NVIDIA LICENSING PORTAL** to go to the NVIDIA Licensing Portal.
 - In the left navigation pane of the NVIDIA Licensing Portal dashboard, expand **LICENSE SERVER** and click **CREATE SERVER**. The Create License Server wizard is started.
 
-<img src="https://i.imgur.com/FFe1dQw.png" width="100">
+<img src="https://i.imgur.com/FFe1dQw.png" width="300">
 
 - The Create License Server wizard opens:
 
@@ -43,7 +43,7 @@ Before even getting started, figure out what version of NVIDIA vGPU do you need.
 ### 3) Creating a CLS *Instance* on the NVIDIA Licensing Portal
 - In the left navigation pane of the NVIDIA Licensing Portal dashboard, click **SERVICE INSTANCES**.
 
-<img src="https://i.imgur.com/iIcfMoU.png" width="100">
+<img src="https://i.imgur.com/iIcfMoU.png" width="300">
 
 - You should already see a Service Instance that has been auto-created 
 
@@ -60,7 +60,7 @@ If it did **NOT** autocreate, then you can follow the steps here:
 
 - In the left navigation pane, click **SERVICE INSTANCES**
 
-<img src="https://i.imgur.com/iIcfMoU.png" width="100">
+<img src="https://i.imgur.com/iIcfMoU.png" width="300">
 
 - On the Service Instances page that opens, from the **Actions** menu for the CLS instance for which you want to generate a client configuration token, choose **Generate client configuration token**.
 - In the **Generate Client Configuration Token** pop-up window that opens, select the references that you want to include in the client configuration token.
