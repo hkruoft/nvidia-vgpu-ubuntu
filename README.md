@@ -8,8 +8,39 @@ A guide on how to make NVIDIA vGPU [v17.6](https://docs.nvidia.com/vgpu/17.0/) w
 ## First things first!!
 Before even getting started, figure out what version of NVIDIA vGPU do you need. There is a [Support Matrix](https://docs.nvidia.com/vgpu/15.0/product-support-matrix/index.html#abstract__ubuntu) page detailing what your Host OS needs to be, and which VM OS(s) are supported. This will be important later when you are setting up your VM OS.
 
-## Setup Enterprise account (**Free** 90-day eval license)
+## License Server (needed for vGPU driver to work on VM)
+### 1) Setup Enterprise account (**Free** 90-day eval license)
 - If you're a new user, go to the following link to start your 90 day eval license to test out the vGPU functionality: https://www.nvidia.com/en-us/data-center/resources/vgpu-evaluation/
+
+### 2) Creating a License Server on the NVIDIA Licensing Portal
+- Log in to the [NVIDIA Application Hub](http://nvid.nvidia.com/dashboard/) and click **NVIDIA LICENSING PORTAL** to go to the NVIDIA Licensing Portal.
+- In the left navigation pane of the NVIDIA Licensing Portal dashboard, expand **LICENSE SERVER** and click **CREATE SERVER**. The Create License Server wizard is started.
+
+![alt text](https://i.imgur.com/FFe1dQw.png)
+
+- The Create License Server wizard opens:
+
+![alt text](https://i.imgur.com/5sbcYX5.png)
+
+- On the Create License Server page of the wizard, step through the configuration requirements to provide the details of your license server.
+  - **Step 1 – Identification**: In the **Name** field, enter your choice of name for the license server and in the **Description** field, enter a text description of the license server. The description is required and will be displayed on the details page for the license server that you are creating.
+  - **Step 2 – Features**: Select one or more available features from your entitlements to allot to this license server.
+  - **Step 3 - Environment**: Select **Cloud (CLS)** to install this license server. To make the selection after the license server has been created, select the **Deferred** option.
+  - **Step 4 – Configuration**: From the **Leasing mode** drop-down list, select the following leasing mode (this is what worked for me):
+    - **Standard Networked Licensing**
+
+      [*Select this mode to simplify the management of licenses on a license server that supports networked licensing. In this mode, no additional configuration of the licenses on the server is required.*]
+
+  - Click **REVIEW SUMMARY** to review the configuration summary before creating the license server.
+- On the Create License Server page, from the **Step 4 – Configuration** menu, click the **CREATE SERVER** option to create this license server. Alternatively, you can click **CREATE SERVER** on the Server Summary page.
+
+### 3) Creating a CLS *Instance* on the NVIDIA Licensing Portal
+- In the left navigation pane of the NVIDIA Licensing Portal dashboard, click **SERVICE INSTANCES**.
+- You should already see a Service Instance that has been auto-created 
+
+![alt text](https://i.imgur.com/iIcfMoU.png)
+
+
 
 ## Download the drivers zip file
 - Once that is done, go here: https://ui.licensing.nvidia.com/software
@@ -103,3 +134,4 @@ From the step where we figured out what the PCIe BDF was, add the following line
 ```
 
 ```
+
