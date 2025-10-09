@@ -66,7 +66,7 @@ If it did **NOT** autocreate, then you can follow the steps here:
 - In the **Generate Client Configuration Token** pop-up window that opens, select the references that you want to include in the client configuration token.
   - From the list of scope references, select the scope references that you want to include
 
-  ![alt text](https://i.imgur.com/f6M3aVS.png)
+  ![alt text](https://i.imgur.com/81OnQAS.png)
 
   - In the Expiration section, select an expiration date for the client configuration token. If you do not select a date, the default token expiration time is 12 years if you select "**Token never expires**"
 
