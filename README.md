@@ -331,10 +331,30 @@ GuestVM# systemctl restart nvidia-gridd.service
 If all goes well (hopefully), you should see the license applied succesfully:
 
 ```
-# nvidia-smi -q | grep Lic
+GuestVM# nvidia-smi -q | grep Lic
     vGPU Software Licensed Product
         License Status                    : Licensed (Expiry: 2025-10-5 1:57:32 GMT)
 
 ```
 
-
+```
+GuestVM# nvidia-smi
+Fri Oct  3 01:48:17 2025       
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 550.54.15   Driver Version: 550.54.15   CUDA Version: 12.4       |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  NVIDIA RTXA6000-24Q  On  | 00000000:07:00.0 Off |                    0 |
+| N/A   N/A    P8    N/A /  N/A |      0MiB / 24576MiB |      0%      Default |
+|                               |                      |             Disabled |
++-------------------------------+----------------------+----------------------+                     
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|  No running processes found                                                 |
++-----------------------------------------------------------------------------+
